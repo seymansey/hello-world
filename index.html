@@ -1,3 +1,343 @@
-<h1>This is a new file that I created</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polestar Choices Finance Calculator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<h2>Branch test</h2>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #fff;
+      color: #1a1a1a;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 32px 80px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+
+    /* ── Left panel ── */
+    .info-panel h1 {
+      font-size: 26px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .info-panel p {
+      color: #444;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .info-panel a { color: #1a1a1a; }
+
+    /* ── Right panel ── */
+    .calc-panel { display: flex; flex-direction: column; gap: 0; }
+
+    /* Sliders */
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      margin-bottom: 40px;
+    }
+
+    .slider-row { display: flex; flex-direction: column; gap: 6px; }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .slider-label span:first-child { color: #666; font-size: 14px; }
+    .slider-label .slider-value { font-size: 15px; font-weight: 500; }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 2px;
+      background: #d0d0d0;
+      outline: none;
+      cursor: pointer;
+      border-radius: 1px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #1a1a1a;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #1a1a1a;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* Highlight the new APR and GFV sliders */
+    .slider-row.new-slider input[type="range"]::-webkit-slider-thumb { background: #0066cc; }
+    .slider-row.new-slider input[type="range"]::-moz-range-thumb { background: #0066cc; }
+    .slider-row.new-slider .slider-value { color: #0066cc; }
+
+    .new-badge {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: #0066cc;
+      color: #fff;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* Summary table */
+    .summary {
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 11px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .summary-row .label { color: #555; font-size: 14px; }
+    .summary-row .value { font-size: 14px; font-weight: 500; }
+
+    .summary-row.highlight .label,
+    .summary-row.highlight .value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    /* Small print */
+    .small-print {
+      margin-top: 28px;
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+    }
+
+    /* Responsive */
+    @media (max-width: 720px) {
+      .page { grid-template-columns: 1fr; gap: 40px; padding: 40px 20px 60px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Left: description -->
+    <div class="info-panel">
+      <h1>Polestar Choices</h1>
+      <p>Polestar Choices, often known as Personal Contract Purchase, is a flexible form of loan where some of the cost is deferred until the end of the agreement to provide you with the benefit of lower monthly payments. The deferred amount is known as the Optional Final Payment. At the end of the agreement, you have three options: Renew, Retain, Return.</p>
+      <p>Use the sliders to explore how your deposit, mileage, term, APR, and optional final payment affect your monthly cost.</p>
+    </div>
+
+    <!-- Right: calculator -->
+    <div class="calc-panel">
+
+      <div class="slider-group">
+
+        <!-- Deposit -->
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Customer deposit</span>
+            <span class="slider-value" id="val-deposit">£11,300</span>
+          </div>
+          <input type="range" id="sl-deposit" min="0" max="30000" step="100" value="11300" />
+        </div>
+
+        <!-- Mileage -->
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Annual mileage</span>
+            <span class="slider-value" id="val-mileage">6,000 Mile</span>
+          </div>
+          <input type="range" id="sl-mileage" min="5000" max="30000" step="1000" value="6000" />
+        </div>
+
+        <!-- Term -->
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Number of monthly payments</span>
+            <span class="slider-value" id="val-term">48</span>
+          </div>
+          <input type="range" id="sl-term" min="12" max="60" step="6" value="48" />
+        </div>
+
+        <!-- APR — new -->
+        <div class="slider-row new-slider" id="row-apr">
+          <div class="slider-label">
+            <span>APR <span class="new-badge">New</span></span>
+            <span class="slider-value" id="val-apr">10.90%</span>
+          </div>
+          <input type="range" id="sl-apr" min="0" max="15" step="0.1" value="10.9" />
+        </div>
+
+        <!-- GFV — new -->
+        <div class="slider-row new-slider" id="row-gfv">
+          <div class="slider-label">
+            <span>Optional final payment <span class="new-badge">New</span></span>
+            <span class="slider-value" id="val-gfv">£24,649.50</span>
+          </div>
+          <input type="range" id="sl-gfv" min="0" max="45000" step="50" value="24650" />
+        </div>
+
+      </div>
+
+      <!-- Summary table -->
+      <div class="summary">
+        <div class="summary-row highlight">
+          <span class="label">Monthly payments</span>
+          <span class="value" id="out-monthly">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">On the road price (incl. Extras)</span>
+          <span class="value">£53,992.00</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Total amount payable</span>
+          <span class="value" id="out-total">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Amount of credit</span>
+          <span class="value" id="out-credit">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Optional final payment</span>
+          <span class="value" id="out-gfv">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Duration of agreement</span>
+          <span class="value" id="out-duration">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Excess mileage charge</span>
+          <span class="value">14.90p</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Fixed rate of interest</span>
+          <span class="value" id="out-fixed-rate">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">APR</span>
+          <span class="value" id="out-apr">—</span>
+        </div>
+      </div>
+
+      <p class="small-print">
+        Representative example. Finance subject to status. Subject to availability only on vehicle orders placed before 30/04/2026. At the end of the agreement there are 3 options: (i) Renew: Part exchange the vehicle. (ii) Retain: Pay the Optional Final Payment to own the vehicle or (iii) Return the vehicle. Further charges may be made subject to the condition or mileage of the vehicle. Terms and conditions apply. Applicants must be 18 or over. Guarantee may be required. Retail offer only. Excludes fleet operators and business users.<br />
+        Finance provided by Volvo Car Financial Services UK Limited, SL6 4FL, trading as Polestar Finance.
+      </p>
+
+    </div>
+  </div>
+
+  <script>
+    const OTR = 53992;
+
+    const slDeposit = document.getElementById('sl-deposit');
+    const slMileage = document.getElementById('sl-mileage');
+    const slTerm    = document.getElementById('sl-term');
+    const slApr     = document.getElementById('sl-apr');
+    const slGfv     = document.getElementById('sl-gfv');
+
+    function fmtGBP(n) {
+      return '£' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function fmtGBP0(n) {
+      return '£' + Math.round(n).toLocaleString('en-GB');
+    }
+
+    function fmtPct(n, decimals) {
+      return n.toFixed(decimals) + '%';
+    }
+
+    // Monthly compounding rate from APR (e.g. apr = 0.109 for 10.9%)
+    function monthlyRate(apr) {
+      return Math.pow(1 + apr, 1 / 12) - 1;
+    }
+
+    // Standard PCP actuarial monthly payment
+    function calcMonthly(credit, gfv, r, n) {
+      if (r === 0) {
+        return credit > gfv ? (credit - gfv) / n : 0;
+      }
+      const df = Math.pow(1 + r, -n);
+      return (credit - gfv * df) * r / (1 - df);
+    }
+
+    function setSliderFill(slider, colour) {
+      const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+      slider.style.background =
+        `linear-gradient(to right, ${colour} ${pct}%, #d0d0d0 ${pct}%)`;
+    }
+
+    function recalculate() {
+      const deposit = parseFloat(slDeposit.value);
+      const n       = parseInt(slTerm.value);
+      const apr     = parseFloat(slApr.value) / 100;
+      const gfv     = parseFloat(slGfv.value);
+
+      const credit  = OTR - deposit;
+      const r       = monthlyRate(apr);
+      const monthly = calcMonthly(credit, gfv, r, n);
+      const total   = deposit + monthly * n + gfv;
+      const nomRate = r * 12 * 100; // nominal annual % (r × 12)
+
+      // Slider labels
+      document.getElementById('val-deposit').textContent = fmtGBP0(deposit);
+      document.getElementById('val-mileage').textContent =
+        parseInt(slMileage.value).toLocaleString('en-GB') + ' Mile';
+      document.getElementById('val-term').textContent    = n;
+      document.getElementById('val-apr').textContent     = fmtPct(parseFloat(slApr.value), 2);
+      document.getElementById('val-gfv').textContent     = fmtGBP(gfv);
+
+      // Summary outputs
+      document.getElementById('out-monthly').textContent    = fmtGBP(monthly);
+      document.getElementById('out-total').textContent      = fmtGBP(total);
+      document.getElementById('out-credit').textContent     = fmtGBP(credit);
+      document.getElementById('out-gfv').textContent        = fmtGBP(gfv);
+      document.getElementById('out-duration').textContent   = (n + 1) + ' months';
+      document.getElementById('out-fixed-rate').textContent = fmtPct(nomRate, 2);
+      document.getElementById('out-apr').textContent        = fmtPct(apr * 100, 2);
+
+      // Slider fill tracks
+      setSliderFill(slApr, '#0066cc');
+      setSliderFill(slGfv, '#0066cc');
+    }
+
+    [slDeposit, slMileage, slTerm, slApr, slGfv].forEach(sl => {
+      sl.addEventListener('input', recalculate);
+    });
+
+    recalculate();
+  </script>
+</body>
+</html>
